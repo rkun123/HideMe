@@ -1,6 +1,6 @@
 <template>
     <v-container>
-        <video ref="video" autoplay></video>
+        <video ref="video" class="webcam_view" autoplay></video>
     </v-container>
 </template>
 <script>
@@ -31,3 +31,5 @@ export default {
     }
 }
 </script>
+<style lang="scss" scoped>
+</style>
