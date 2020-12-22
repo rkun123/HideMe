@@ -1,33 +1,36 @@
 <template>
-  <v-app>
+  <v-app id="app">
     <v-app-bar
       app
-      color="primary"
-      dark
+      dense
+      color="deep-purple accent-4"
     >
-      <v-spacer></v-spacer>
-      <h1>HideMe</h1>
-      <v-spacer></v-spacer>
+      <v-icon>mdi-heart</v-icon>
+      <v-toolbar-title>Hide Me</v-toolbar-title>
     </v-app-bar>
-
-    <v-main>
-      <HelloWorld/>
-    </v-main>
+    <router-view></router-view>
   </v-app>
 </template>
 
-<script>
-import HelloWorld from './components/HelloWorld';
+<style lang="scss">
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
 
-export default {
-  name: 'App',
+#nav {
+  padding: 30px;
 
-  components: {
-    HelloWorld,
-  },
+  a {
+    font-weight: bold;
+    color: #2c3e50;
 
-  data: () => ({
-    //
-  }),
-};
-</script>
+    &.router-link-exact-active {
+      color: #42b983;
+    }
+  }
+}
+</style>
