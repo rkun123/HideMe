@@ -7,7 +7,7 @@
     </v-row>
     <v-row>
       <v-col>
-        <video-view />
+        <face-detect />
       </v-col>
     </v-row>
   </v-container>
@@ -15,12 +15,12 @@
 
 <script>
 import CameraSelector from '../components/CameraSelector.vue'
-import VideoView from '../components/VideoView.vue'
+import FaceDetect from '../components/FaceDetect'
 
 export default {
   name: 'Home',
   components: {
-    VideoView,
+    FaceDetect,
     CameraSelector
   }
 }

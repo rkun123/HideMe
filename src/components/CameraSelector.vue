@@ -17,7 +17,8 @@ export default {
     }),
     computed: {
         ...mapState({
-            cameraDevice: state => state.cameraDevice
+            cameraDevice: state => state.cameraDevice,
+            videoLoaded: state => state.videoLoaded
         })
     },
     methods: {
