@@ -23,7 +23,6 @@
 import { mapState, mapActions, mapMutations } from 'vuex'
 import * as faceapi from 'face-api.js'
 import VideoView from './VideoView'
-import electron from 'electron'
 
 export default {
     data: () => ({
@@ -103,10 +102,12 @@ export default {
                 )
                 this.drawImage(
                     canvas,
+                    video,
                     ctx,
                     image
                     )
-            }, 100)
+                this.extructBinary(canvas, canvas.getContext('2d'))
+            }, 1000 / 30)
             this.setPredictTimer(timer)
             this.dialog = false;
         },
@@ -119,10 +120,16 @@ export default {
                 h: h + option.paddingY * 2
             }
         },
-        drawImage(canvas,{ x, y, w, h }, image) {
+        drawImage(canvas, video, { x, y, w, h }, image) {
             const ctx = canvas.getContext('2d')
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            //ctx.clearRect(0, 0, canvas.width, canvas.height)
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
             ctx.drawImage(image, x, y, w, h)
+        },
+        extructBinary(canvas, ctx) {
+            const pixel = ctx.getImageData(0, 0, canvas.width, canvas.height)
+            const data = pixel.data
+            window.electron.ipcRenderer.send('frame', data)
         }
     },
     watch: {

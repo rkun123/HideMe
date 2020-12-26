@@ -41,5 +41,6 @@ export default {
 <style lang="scss" scoped>
 video {
     position: relative;
+    opacity: 0;
 }
 </style>
