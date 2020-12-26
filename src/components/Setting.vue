@@ -2,11 +2,11 @@
     <v-container>
         <v-row>
             <v-col>X Padding</v-col>
-            <v-col><v-slider :min="-30" :max="30" v-model="paddingX" @change="setPaddingX"/></v-col>
+            <v-col><v-slider :min="0" :max="50" v-model="paddingX" @change="setPaddingX"/></v-col>
         </v-row>
         <v-row>
             <v-col>Y Padding</v-col>
-            <v-col><v-slider :min="-30" :max="30" v-model="paddingY" @change="setPaddingY"/></v-col>
+            <v-col><v-slider :min="0" :max="50" v-model="paddingY" @change="setPaddingY"/></v-col>
         </v-row>
     </v-container>
 </template>

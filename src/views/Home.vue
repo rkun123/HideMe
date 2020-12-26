@@ -12,7 +12,7 @@
     </v-row>
     <v-row>
       <v-col md="2">
-        <v-btn @click="setPredictStatus(!predictStatus)">
+        <v-btn :color="predictStatus ? 'red' : 'success'" @click="setPredictStatus(!predictStatus)">
           {{ predictStatus ? 'STOP' : 'START' }}
         </v-btn>
       </v-col>
@@ -41,6 +41,7 @@ export default {
     stopPredict() {
       clearInterval(this.predictTimer)
       this.setPredictTimer(null)
+      this.setPredictTimer(false)
     },
     uploadImage(file){
       const reader = new FileReader()

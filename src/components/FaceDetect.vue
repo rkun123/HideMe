@@ -2,13 +2,34 @@
     <div ref="container" class="detection_container">
         <video-view ref="video" />
         <canvas ref="overlayCanvas"></canvas>
+        <v-dialog v-model="dialog" hide-overlay persistent width="300" >
+            <v-card color="primary" dark >
+                <v-card-text>
+                    Preparing predict...
+                    <v-progress-linear indeterminate color="white" class="mb-0" />
+                </v-card-text>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-model="alert" hide-overlay persistent width="300" >
+            <v-card color="red" dark >
+                <v-card-text>
+                    Please choose image.
+                </v-card-text>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapMutations } from 'vuex'
 import * as faceapi from 'face-api.js'
 import VideoView from './VideoView'
+import electron from 'electron'
+
 export default {
+    data: () => ({
+        dialog: false,
+        alert: false,
+    }),
     components: {
         VideoView
     },
@@ -22,15 +43,20 @@ export default {
         })
     },
     methods: {
-        ...mapActions([ 'setPredictTimer' ]),
+        ...mapActions([ 'setPredictTimer']),
+        ...mapMutations([ 'setPredictStatus' ]),
         async loadModel() {
             console.log('Loading model...')
+            this.dialogMessage = "Loading model..."
+            this.dialog = true;
             try {
                 await faceapi.nets.ssdMobilenetv1.load('/models')
                 await faceapi.nets.faceLandmark68Net.load('/models')
                 console.log('Loaded model.')
+                this.dialog = false;
             }catch(e) {
                 console.error(e)
+                this.dialog = false;
             }
         },
         resizeCanvasToVideo() {
@@ -43,6 +69,16 @@ export default {
             canvas.height = video.videoHeight
         },
         async detect() {
+            const image = this.image
+            if(image === null || this.videoLoaded === false) {
+                this.alert = true;
+                setTimeout(() => {
+                    this.alert = false
+                    this.setPredictStatus(false)
+                }, 2000)
+                return
+            }
+            this.dialog = true
             const video = this.$refs.video.$refs.video
             const canvas = this.$refs.overlayCanvas
 
@@ -52,28 +88,27 @@ export default {
             const option = new faceapi.SsdMobilenetv1Options({
             })
             const timer = setInterval(async () => {
-                console.log('.')
-                let task = faceapi.detectSingleFace(video, option).withFaceLandmarks()
+                let task = faceapi.detectSingleFace(video, option)
                 const result = await task
                 if(result === undefined) return
-                console.log(result)
                 const dims = faceapi.matchDimensions(canvas, video, true)
                 const resizedResults = faceapi.resizeResults(result, dims)
                 //faceapi.draw.drawDetections(canvas, resizedResults)
                 //faceapi.draw.drawFaceLandmarks(canvas, resizedResults)
                 const ctx = this.adjustImageCtx(
-                    resizedResults.detection.box.x,
-                    resizedResults.detection.box.y,
-                    resizedResults.detection.box.width,
-                    resizedResults.detection.box.height,
+                    resizedResults.box.x,
+                    resizedResults.box.y,
+                    resizedResults.box.width,
+                    resizedResults.box.height,
                 )
                 this.drawImage(
                     canvas,
                     ctx,
-                    this.image
+                    image
                     )
             }, 100)
             this.setPredictTimer(timer)
+            this.dialog = false;
         },
         adjustImageCtx(x, y, w, h){
             const option = this.imageOption
