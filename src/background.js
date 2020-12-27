@@ -5,7 +5,7 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 import path from 'path'
-import toPic from './picture_save'
+import { startCam, stopCam, sendFrame} from './webcam_adapter'
 
 
 // Scheme must be registered before the app is ready
@@ -83,7 +83,22 @@ if (isDevelopment) {
   }
 }
 
-ipcMain.on('frame', (_, args) => {
+let cam = null
+
+ipcMain.on('start', (_, args) => {
+  console.log('start cam')
   console.log(args)
-  toPic(Buffer.from(args.buffer))
+  cam = startCam(640, 480)
+})
+
+let frameId = 1;
+
+ipcMain.on('frame', (_, args) => {
+  console.log(`Received ${frameId}th frame`)
+  sendFrame(cam, frameId, Buffer.from(args.buffer))
+  frameId++
+})
+
+ipcMain.on('stop', () => {
+  stopCam(cam)
 })

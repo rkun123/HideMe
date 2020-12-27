@@ -83,30 +83,31 @@ export default {
 
             const videoCanvas = faceapi.createCanvasFromMedia(video)
             const displaySize = { width: video.width, height: video.height }
+            console.log(displaySize)
+            window.electron.ipcRenderer.send('start')
             faceapi.matchDimensions(videoCanvas, displaySize)
-            const option = new faceapi.SsdMobilenetv1Options({
-            })
+            const option = new faceapi.SsdMobilenetv1Options({})
             const timer = setInterval(async () => {
                 let task = faceapi.detectSingleFace(video, option)
                 const result = await task
-                if(result === undefined) return
-                const dims = faceapi.matchDimensions(canvas, video, true)
-                const resizedResults = faceapi.resizeResults(result, dims)
-                //faceapi.draw.drawDetections(canvas, resizedResults)
-                //faceapi.draw.drawFaceLandmarks(canvas, resizedResults)
-                const ctx = this.adjustImageCtx(
-                    resizedResults.box.x,
-                    resizedResults.box.y,
-                    resizedResults.box.width,
-                    resizedResults.box.height,
-                )
-                this.drawImage(
-                    canvas,
-                    video,
-                    ctx,
-                    image
+                const ctx = canvas.getContext('2d')
+
+                if(result !== undefined) {
+                    const dims = faceapi.matchDimensions(canvas, video, true)
+                    const resizedResults = faceapi.resizeResults(result, dims)
+                    //faceapi.draw.drawDetections(canvas, resizedResults)
+                    //faceapi.draw.drawFaceLandmarks(canvas, resizedResults)
+                    const faceCtx = this.adjustImageCtx(
+                        resizedResults.box.x,
+                        resizedResults.box.y,
+                        resizedResults.box.width,
+                        resizedResults.box.height,
                     )
-                this.extructBinary(canvas, canvas.getContext('2d'))
+                    this.drawBackgroundImage(ctx, canvas.width, canvas.height, video)
+                    this.drawFace( ctx, faceCtx, image)
+                    const data = this.extractFaces(canvas, ctx)
+                    window.electron.ipcRenderer.send('frame', data)
+                }
             }, 1000 / 30)
             this.setPredictTimer(timer)
             this.dialog = false;
@@ -120,16 +121,16 @@ export default {
                 h: h + option.paddingY * 2
             }
         },
-        drawImage(canvas, video, { x, y, w, h }, image) {
-            const ctx = canvas.getContext('2d')
+        drawBackgroundImage(ctx, width, height, video) {
             //ctx.clearRect(0, 0, canvas.width, canvas.height)
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+            ctx.drawImage(video, 0, 0, width, height)
+        },
+        drawFace(ctx, { x, y, w, h }, image) {
             ctx.drawImage(image, x, y, w, h)
         },
-        extructBinary(canvas, ctx) {
+        extractFaces(canvas, ctx) {
             const pixel = ctx.getImageData(0, 0, canvas.width, canvas.height)
-            const data = pixel.data
-            window.electron.ipcRenderer.send('frame', data)
+            return pixel.data
         }
     },
     watch: {
@@ -140,10 +141,11 @@ export default {
         predictStatus: async function (val) {
             if(val) {
                 console.log('Start detection')
-                await this.detect()
+                if(this.videoLoaded) await this.detect()
             }else{
                 console.log('Stop detection')
                 clearTimeout(this.predictTimer)
+                window.electron.ipcRenderer.send('stop')
                 this.setPredictTimer(null)
             }
         }
