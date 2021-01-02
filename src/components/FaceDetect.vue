@@ -87,27 +87,32 @@ export default {
             window.electron.ipcRenderer.send('start')
             faceapi.matchDimensions(videoCanvas, displaySize)
             const option = new faceapi.SsdMobilenetv1Options({})
+            let faceCtx = null
             const timer = setInterval(async () => {
+
                 let task = faceapi.detectSingleFace(video, option)
                 const result = await task
                 const ctx = canvas.getContext('2d')
+
 
                 if(result !== undefined) {
                     const dims = faceapi.matchDimensions(canvas, video, true)
                     const resizedResults = faceapi.resizeResults(result, dims)
                     //faceapi.draw.drawDetections(canvas, resizedResults)
                     //faceapi.draw.drawFaceLandmarks(canvas, resizedResults)
-                    const faceCtx = this.adjustImageCtx(
+                    faceCtx = this.adjustImageCtx(
                         resizedResults.box.x,
                         resizedResults.box.y,
                         resizedResults.box.width,
                         resizedResults.box.height,
                     )
-                    this.drawBackgroundImage(ctx, canvas.width, canvas.height, video)
-                    this.drawFace( ctx, faceCtx, image)
-                    const data = this.extractFaces(canvas, ctx)
-                    window.electron.ipcRenderer.send('frame', data)
                 }
+
+                if(faceCtx === null) return
+                this.drawBackgroundImage(ctx, canvas.width, canvas.height, video)
+                this.drawFace( ctx, faceCtx, image)
+                const data = this.extractFaces(canvas, ctx)
+                window.electron.ipcRenderer.send('frame', data)
             }, 1000 / 30)
             this.setPredictTimer(timer)
             this.dialog = false;
