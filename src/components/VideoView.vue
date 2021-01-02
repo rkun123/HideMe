@@ -18,7 +18,7 @@ export default {
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: false,
                 video: {
-                    deviceId: device
+                    deviceId: device.deviceId
                 }
             })
             video.srcObject = stream

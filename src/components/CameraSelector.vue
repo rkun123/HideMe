@@ -5,6 +5,7 @@
             :value="cameraDevice"
             @input="setCameraDevice"
             item-text="label"
+            return-object="true"
             label="ウェブカメラ"
         ></v-select>
     </v-container>
