@@ -5,7 +5,7 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 import path from 'path'
-import { startCam, stopCam, sendFrame} from './webcam_adapter'
+import { initCam, startCam, stopCam, sendFrame} from './webcam_adapter'
 
 
 // Scheme must be registered before the app is ready
@@ -68,6 +68,13 @@ app.on('ready', async () => {
   createWindow()
 })
 
+process.on('beforeExit', () => {
+  if(cam !== null) {
+    console.info('Stop cam')
+    stopCam(cam)
+  }
+})
+
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
   if (process.platform === 'win32') {
@@ -85,20 +92,22 @@ if (isDevelopment) {
 
 let cam = null
 
-ipcMain.on('start', (_, args) => {
+cam = initCam()
+
+ipcMain.on('start', (e, args) => {
   console.log('start cam')
+  console.log(e)
   console.log(args)
-  cam = startCam(640, 480)
+  startCam(cam, 640, 480)
 })
 
 let frameId = 1;
 
 ipcMain.on('frame', (_, args) => {
-  console.log(`Received ${frameId}th frame`)
   sendFrame(cam, frameId, Buffer.from(args.buffer))
   frameId++
 })
 
 ipcMain.on('stop', () => {
-  stopCam(cam)
+  //stopCam(cam)
 })

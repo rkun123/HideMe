@@ -1,19 +1,29 @@
 import virtualcam from 'node-virtualcam'
 
 const fps = 30
-const initCam = () => {
+let started = false
 
-}
+const initCam = () => (virtualcam)
 
-const startCam = (width, height) => {
+const startCam = (cam, width, height) => {
+    if(started) {
+        console.info('Virtualcam has already started.')
+        return cam
+    }
+
     console.log('Start cam', width, height)
-    virtualcam.stop()
-    virtualcam.start(width, height, fps, 10)
+    try {
+        cam.start(width, height, fps, 10)
+    } catch(e) {
+        console.error(e)
+    }
+    started = true
     console.log(`virtual cam output started (${width}x${height} @ ${fps}fps)`);
-    return virtualcam
+    return cam
 }
 
 const sendFrame = (cam, frame, data) => {
+    console.info(`frame: ${frame}`)
     cam.send(frame, data)
 }
 
@@ -26,4 +36,4 @@ const stopCam = (cam) => {
     console.log('Stop camera')
 }
 
-export { startCam, stopCam, sendFrame }
+export { initCam, startCam, stopCam, sendFrame }
